@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "tugas7",
-    "slug": "tugas7",
+    "name": "fokustime",
+    "slug": "fokustime",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/fokustime.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

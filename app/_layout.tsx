@@ -40,15 +40,15 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        router.replace('/(tabs)');
+        router.replace('/murid/MuridScreen');
       } else {
-        router.replace('/auth/LoginScreen');
+        router.replace('/murid/MuridScreen');
       }
     }
   }, [isAuthenticated, isLoading]);
 
   if (!loaded || isLoading) {
-    return null; // Optionally return a custom loading/splash screen
+    return null;
   }
 
   return (
@@ -61,7 +61,7 @@ export default function RootLayout() {
         <Stack.Screen name="auth/SelectRole" options={{ headerShown: false }} />
         <Stack.Screen name="auth/SignUpScreenGuru" options={{ headerShown: false }} />
         <Stack.Screen name="auth/SignUpScreenMurid" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="murid" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

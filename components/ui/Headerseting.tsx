@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
-import API_URL from "../config/config";
+import API_URL from "../../config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
@@ -76,9 +76,10 @@ const HeaderEdit = () => {
 
   return (
     <View style={styles.header}>
+      <View style={{top:10}}>
       <View style={styles.profileContainer}>
         <Image
-          source={{ uri: "https://via.placeholder.com/40" }}
+          source={require('../../assets/images/avatar2.png')}
           style={styles.profileImage}
         />
         <View style={styles.textContainer}>
@@ -86,7 +87,7 @@ const HeaderEdit = () => {
             <Text style={styles.name}>{profile?.username || "Nama tidak tersedia"}</Text>
             <TouchableOpacity onPress={handleEditName}>
               <Image
-                source={require("../assets/images/edit.png")}
+                source={require("../../assets/images/edit.png")}
                 style={styles.editIcon}
               />
             </TouchableOpacity>
@@ -94,8 +95,6 @@ const HeaderEdit = () => {
           <Text style={styles.rank}>{profile?.email || "Email tidak tersedia"}</Text>
         </View>
       </View>
-
-      {/* Modal untuk edit nama */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -118,18 +117,24 @@ const HeaderEdit = () => {
           </View>
         </View>
       </Modal>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 30,
-    backgroundColor: "#B4ECE3",
+    backgroundColor: '#B4ECE3',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 10,
     borderBottomLeftRadius: 50,
     borderBottomRightRadius: 50,
   },

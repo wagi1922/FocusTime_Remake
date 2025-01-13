@@ -1,14 +1,13 @@
 import React from 'react';
 import { useRouter } from 'expo-router';
+import HeaderEdit from '@/components/ui/Headerseting';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import HeaderEdit from '@/components/Headerseting';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, ImageSourcePropType } from 'react-native';
-
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, ImageSourcePropType } from 'react-native';
 
 interface SettingItem {
   id: number;
   title: string;
-  description: string;
+  description?: string;
   icon: ImageSourcePropType;
   color?: string;
 }
@@ -16,12 +15,30 @@ interface SettingItem {
 const Pengaturan: React.FC = () => {
   const router = useRouter();
 
-  const handlePress = (id: number): void => {
-    if (id === 4) {
-      AsyncStorage.removeItem('token');
-      router.replace('/auth/LoginScreen');
+  const confirmLogout = async () => {
+    Alert.alert(
+      'Konfirmasi Keluar',
+      'Apakah Anda yakin ingin keluar?',
+      [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Keluar',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem('token');
+            router.replace('/auth/LoginScreen');
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const handlePress = (title: string) => {
+    if (title === 'Keluar') {
+      confirmLogout();
     } else {
-      console.log(`Navigasi ke halaman dengan id: ${id}`);
+      Alert.alert('Fitur belum tersedia', `Anda menekan ${title}`);
     }
   };
 
@@ -65,7 +82,7 @@ const Pengaturan: React.FC = () => {
             <TouchableOpacity
               key={item.id}
               style={styles.settingRow}
-              onPress={() => handlePress(item.id)}
+              onPress={() => handlePress(item.title)}
             >
               <Image style={styles.icon} source={item.icon} />
               <View style={styles.textContainer}>
@@ -91,17 +108,20 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingVertical: 10,
-    paddingBottom: 100, 
+    paddingBottom: 100,
   },
   bawa: {
     paddingHorizontal: 20,
   },
   headerText: {
     fontSize: 23,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    marginTop: 20,
+    marginLeft: 10
   },
   separator: {
     borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
     marginBottom: 10,
     marginTop: 10,
   },
@@ -109,23 +129,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 15,
-    padding: 2,
+    paddingVertical: 10,
   },
   icon: {
+    width: 23,
+    height: 23,
     marginRight: 10,
-    width: 24,
-    height: 24, 
   },
   textContainer: {
     flex: 1,
   },
   title: {
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   description: {
-    fontSize: 10,
-    fontWeight: '300',
-    color: '#666',
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#717171',
   },
 });
