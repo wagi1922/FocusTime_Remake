@@ -1,15 +1,11 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  ScrollView,
-  TouchableOpacity
-} from 'react-native';
-import Header from '../ui/Header';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import Header from '@/components/ui/Header';
+import { useRouter } from 'expo-router';
 
-const Notifikasi = ({ navigation }) => {
+const Notifikasi = () => {
+  const router = useRouter(); // Gunakan useRouter untuk navigasi
+
   return (
     <View style={styles.container}>
       <Header />
@@ -17,11 +13,11 @@ const Notifikasi = ({ navigation }) => {
         <View style={styles.bawa}>
           <TouchableOpacity
             style={styles.tulis}
-            onPress={() => navigation.goBack()} // Navigasi kembali ke layar sebelumnya
+            onPress={() => router.push('/murid/MuridScreen')}
           >
             <Image
               style={{ marginRight: 10, marginTop: 5, width: 20, height: 20 }}
-              source={require('../../assets/corner.png')}
+              source={require('../assets/images/corner.png')}
             />
             <Text style={{ fontSize: 23, fontWeight: 'bold' }}>Notifikasi</Text>
           </TouchableOpacity>

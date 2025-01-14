@@ -11,7 +11,7 @@ const SignUpScreen2 = () => {
   };
 
   const handleSingup2 = () => {
-    router.replace('/auth/SignUpScreenGuru');
+    router.replace('/auth/SignUpScreen3');
   };
 
   return (

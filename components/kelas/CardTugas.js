@@ -73,7 +73,7 @@ const TugasCard = ({
           </View>
         </View>
 
-        {/* Bagian Bawah */}
+
         <View style={styles.body}>
           <Text style={styles.description}>{deskripsi}</Text>
           <View style={styles.fileSection}>
@@ -89,11 +89,7 @@ const TugasCard = ({
         </View>
 
         {/* Modal */}
-        <Modal
-          isVisible={isModalVisible}
-          onBackdropPress={toggleModal}
-          style={styles.modal}
-        >
+        <Modal isVisible={isModalVisible} onBackdropPress={toggleModal} style={styles.modal}>
           <View style={styles.modalContent}>
             <TouchableOpacity style={styles.titleLyout} onPress={hideModal}>
               <Image
@@ -109,10 +105,7 @@ const TugasCard = ({
               <Text style={styles.attachmentText}>+ Tambahkan Lampiran</Text>
             </TouchableOpacity>
             <View style={styles.buttonlayout}>
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={toggleModal}
-            >
+            <TouchableOpacity style={styles.submitButton} onPress={toggleModal}>
               <Text style={styles.submitText}>Kumpulkan</Text>
             </TouchableOpacity>
             </View>

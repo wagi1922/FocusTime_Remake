@@ -18,7 +18,7 @@ const LoginScreen = () => {
             const { token } = response.data.data;
             await AsyncStorage.setItem("token", token);
             Alert.alert("Login successful!")
-            router.replace("/(tabs)/MuridScreen")
+            router.replace("/murid/MuridScreen")
         } catch (error) {
             const errorMessage = (error as any).response?.data?.message || "An error occurred";
             Alert.alert(errorMessage)

@@ -1,41 +1,46 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import {useRouter} from "expo-router";
 
 const Header = () => {
+  const router = useRouter();
+
   return (
     <View style={styles.header}>
-      <View style={{top: 10, flexDirection: 'row'}}>
-      <View style={styles.profileContainer}>
-        <Image
-          source={require('../../assets/images/avatar2.png')}
-          style={styles.profileImage}
-        />
-        <View style={styles.profileText}>
-          <Text style={styles.name}>Maulana Riski</Text>
-          <Text style={styles.rank}>#1_dikelas</Text>
-        </View>
-      </View>
-      <View style={styles.taskContainer}>
-        <View style={styles.taskTitle}>
-          <Text style={styles.taskTitleText}>Total Tugas</Text>
-        </View>
-        <View style={styles.taskStatus}>
-          <View style={[styles.taskItem, styles.taskCompleted]}>
-            <Text style={styles.taskNumberBlack}>10</Text>
-            <Text style={styles.taskLabelBlack}>Selesai</Text>
-          </View>
-          <View style={[styles.taskItem, styles.taskIncomplete]}>
-            <Text style={styles.taskNumberBlack}>5</Text>
-            <Text style={styles.taskLabelBlack}>Belum</Text>
+      <View style={{ top: 10, flexDirection: 'row' }}>
+        <View style={styles.profileContainer}>
+          <Image
+            source={require('../../assets/images/avatar2.png')}
+            style={styles.profileImage}
+          />
+          <View style={styles.profileText}>
+            <Text style={styles.name}>Maulana Riski</Text>
+            <Text style={styles.rank}>#1_dikelas</Text>
           </View>
         </View>
-      </View>
-      <TouchableOpacity >
-        <Image
-          source={require('../../assets/images/bell.png')}
-          style={styles.notificationIcon}
-        />
-      </TouchableOpacity>
+        <View style={styles.taskContainer}>
+          <View style={styles.taskTitle}>
+            <Text style={styles.taskTitleText}>Total Tugas</Text>
+          </View>
+          <View style={styles.taskStatus}>
+            <View style={[styles.taskItem, styles.taskCompleted]}>
+              <Text style={styles.taskNumberBlack}>10</Text>
+              <Text style={styles.taskLabelBlack}>Selesai</Text>
+            </View>
+            <View style={[styles.taskItem, styles.taskIncomplete]}>
+              <Text style={styles.taskNumberBlack}>5</Text>
+              <Text style={styles.taskLabelBlack}>Belum</Text>
+            </View>
+          </View>
+        </View>
+        <TouchableOpacity
+          onPress={() => router.replace('/Notifikasi')}
+        >
+          <Image
+            source={require('../../assets/images/bell.png')}
+            style={styles.notificationIcon}
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -61,12 +66,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 60,
-    marginTop:10,
+    marginTop: 10,
   },
   profileImage: {
     width: 42,
     height: 42,
-    borderWidth:2,
+    borderWidth: 2,
     borderRadius: 20,
     backgroundColor: '#E0E0E0', // Placeholder untuk gambar
   },
@@ -91,7 +96,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 4,
     borderRadius: 4,
-    marginBottom: 2
+    marginBottom: 2,
   },
   taskTitleText: {
     fontSize: 9,
