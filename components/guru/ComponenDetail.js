@@ -11,9 +11,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import HeaderGuru from './Header-guru';
-import CardMateriGuru from './CardMateriGuru';
 import NamaMurid from './NamaSiswaGuru';
 import CardTugasGuru from './tugas';
+import CardMateriGuru from './materi';
 
 const DetailKelasScreen = ({ route }) => {
   const navigation = useNavigation(); // Pindahkan ke atas agar bisa digunakan di seluruh fungsi
@@ -23,14 +23,13 @@ const DetailKelasScreen = ({ route }) => {
   const [title, setTitle] = useState(initialTitle);
   const [classTitle, setClassTitle] = useState(initialTitle);
   const [classCode, setClassCode] = useState('123456');
-  const [classLink, setClassLink] = useState('https://example.com/class');
 
   const renderContent = () => {
     switch (activeTab) {
       case 'Tugas':
         return <CardTugasGuru />;
       case 'Materi':
-        return <CardMateriGuru />;
+        return <CardMateriGuru/>;
       case 'Siswa':
         return <NamaMurid navigation={navigation} />;
       default:
@@ -127,7 +126,6 @@ const DetailKelasScreen = ({ route }) => {
               placeholder="Nama Kelas"
             />
             <Text style={styles.input}>{classCode}</Text>
-            <Text style={styles.input}>{classLink}</Text>
             <View style={styles.modalButtonContainer}>
               <Button title="Simpan" onPress={handleSave} />
               <Button title="Delet" onPress={handleSave} />

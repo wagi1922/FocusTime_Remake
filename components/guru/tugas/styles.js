@@ -5,7 +5,6 @@ export const styles = StyleSheet.create({
   // Main Container Styles 
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: '#F5F5F5',
   },
   cardContainer: {
@@ -187,6 +186,18 @@ export const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
+  modalheader:{
+    flexDirection:'row'
+  },
+  modalheaderimg:{
+    marginRight:10,
+    marginTop:2
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
   modalContent: {
     backgroundColor: '#fff',
     padding: 16,
@@ -204,12 +215,6 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 16,
   },
   modalActions: {
     flexDirection: 'row',

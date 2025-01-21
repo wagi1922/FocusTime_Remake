@@ -8,6 +8,9 @@ import {
   TouchableOpacity,
   ScrollView,
   BackHandler,
+  TextInput,
+  Alert,
+  Linking
 } from "react-native";
 import Modal from "react-native-modal";
 
@@ -26,12 +29,42 @@ const TugasCard = ({
 }) => {
   const [isModalVisible, setModalVisible] = useState(false);
 
+  const [inputText, setInputText] = useState('');
+  const [savedText, setSavedText] = useState('');
+
+    // Fungsi untuk membuka link
+    const handleOpenLink = async (url) => {
+      try {
+        const supported = await Linking.canOpenURL(url);
+        if (supported) {
+          await Linking.openURL(url);
+        } else {
+          Alert.alert("Link tidak valid", "Tidak dapat membuka link yang diberikan.");
+        }
+      } catch (error) {
+        Alert.alert("Terjadi kesalahan", "Gagal membuka link.");
+      }
+    };
+
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
 
   const hideModal = () => {
     setModalVisible(false);
+  };
+
+
+  const handleSave = () => {
+    if (inputText.trim() === '') {
+      Alert.alert('Error', 'Input tidak boleh kosong!'); // Menampilkan alert jika input kosong
+      hideModal()
+      return;
+    }
+    setSavedText(inputText); // Menyimpan teks ke state
+    console.log('Teks yang disimpan:', inputText); // Menampilkan di console log
+    setInputText(''); // Menghapus teks dari input
+    hideModal()
   };
 
   const handleBackPress = () => {
@@ -77,10 +110,12 @@ const TugasCard = ({
         <View style={styles.body}>
           <Text style={styles.description}>{deskripsi}</Text>
           <View style={styles.fileSection}>
-            <View style={styles.fileInfo}>
+            <TouchableOpacity 
+            style={styles.fileInfo}
+            onPress={() => handleOpenLink(fileName)}>
               <Image source={fileIcon} style={styles.fileIcon} />
-              <Text style={styles.fileName}>{fileName}</Text>
-            </View>
+              <Text style={styles.fileName}>Buka</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={toggleModal}>
               <Text style={styles.buttonText}>Kerjakan</Text>
               <Image source={buttonIcon} style={styles.buttonIcon} />
@@ -101,11 +136,16 @@ const TugasCard = ({
             <Text style={styles.label}>Lampiran
             <Text style={styles.star}>*</Text>
             </Text>
-            <TouchableOpacity style={styles.attachmentButton}>
-              <Text style={styles.attachmentText}>+ Tambahkan Lampiran</Text>
-            </TouchableOpacity>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Masukkan teks"
+              value={inputText}
+              onChangeText={text => setInputText(text)}
+            />
+
             <View style={styles.buttonlayout}>
-            <TouchableOpacity style={styles.submitButton} onPress={toggleModal}>
+            <TouchableOpacity style={styles.submitButton} onPress={handleSave}>
               <Text style={styles.submitText}>Kumpulkan</Text>
             </TouchableOpacity>
             </View>
@@ -134,7 +174,7 @@ const App = () => {
         tanggal="27 Oktober 2025"
         waktu="11:59 PM"
         deskripsi="Jawablah soal berikut"
-        fileName="Tugas_1.pdf"
+        fileName="http://example.com/trigonometry"
         fileIcon={require("../../assets/images/pdf.png")}
         buttonIcon={require("../../assets/images/edit.png")}
       />
@@ -147,7 +187,7 @@ const App = () => {
         tanggal="28 Oktober 2025"
         waktu="10:00 AM"
         deskripsi="Kerjakan soal integral berikut"
-        fileName="Tugas_2.pdf"
+        fileName="http://example.com/trigonometry"
         fileIcon={require("../../assets/images/pdf.png")}
         buttonIcon={require("../../assets/images/edit.png")}
       />
@@ -340,7 +380,16 @@ const styles = StyleSheet.create({
   },
   buttonlayout:{
     alignItems: 'center'
-  }
+  },
+
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+    width: "100%",
+  },
 });
 
 export default App;

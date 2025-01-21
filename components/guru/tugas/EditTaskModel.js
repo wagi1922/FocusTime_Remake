@@ -1,6 +1,6 @@
 // src/components/CardTugasGuru/EditTaskModal.js
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal,Image } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { styles } from './styles';
 
@@ -10,12 +10,14 @@ const EditTaskModal = ({ visible, classData, onClose, onSave }) => {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [attachments, setAttachments] = useState([]);
+    const [linkTitle, setLinkTitle] = useState(classData.link); // New state for link input
 
   const resetInputs = () => {
     setTaskTitle(classData.title);
     setTaskSubtitle(classData.subtitle);
     setDate(new Date());
     setAttachments([]);
+    setLinkTitle(classData.link); // Reset link input
   };
 
   const handleClose = () => {
@@ -34,6 +36,7 @@ const EditTaskModal = ({ visible, classData, onClose, onSave }) => {
       ...classData,
       title: taskTitle,
       subtitle: taskSubtitle,
+      link: linkTitle, // Include link in the added task
     });
   };
 
@@ -46,8 +49,9 @@ const EditTaskModal = ({ visible, classData, onClose, onSave }) => {
     >
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <TouchableOpacity style={styles.backButton} onPress={handleClose}>
-            <Text style={styles.modalTitle}>Edit Tugas</Text>
+          <TouchableOpacity onPress={handleClose} style={styles.modalheader}>
+              <Image source={require('../../../assets/images/corner.png')} style={styles.modalheaderimg} />
+              <Text style={styles.modalTitle}>Tambah Tugas Baru</Text>
           </TouchableOpacity>
 
           <Text style={styles.label}>Nama Tugas</Text>
@@ -66,6 +70,7 @@ const EditTaskModal = ({ visible, classData, onClose, onSave }) => {
             placeholder="Instruksi"
             multiline
           />
+          
 
           <Text style={styles.label}>Tenggat</Text>
           <TouchableOpacity
@@ -85,32 +90,14 @@ const EditTaskModal = ({ visible, classData, onClose, onSave }) => {
             />
           )}
 
-          <Text style={styles.label}>Lampiran</Text>
-          <TouchableOpacity
-            style={styles.addAttachmentButton}
-            onPress={() =>
-              setAttachments((prev) => [
-                ...prev,
-                `Lampiran_${prev.length + 1}.pdf`,
-              ])
-            }
-          >
-            <Text style={styles.addAttachmentText}>+ Tambahkan Lampiran</Text>
-          </TouchableOpacity>
-          {attachments.map((attachment, index) => (
-            <View key={index} style={styles.attachmentRow}>
-              <Text style={styles.attachmentText}>{attachment}</Text>
-              <TouchableOpacity
-                onPress={() =>
-                  setAttachments((prev) =>
-                    prev.filter((_, i) => i !== index)
-                  )
-                }
-              >
-                <Text style={styles.removeAttachment}>❌</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+          {/* New Link Input Section */}
+          <Text style={[styles.label,{color:'#4756FF'}]}>Link Lampiran</Text>
+          <TextInput
+            style={styles.input}
+            value={linkTitle}
+            onChangeText={setLinkTitle}
+            placeholder="Masukkan link drive"
+          />
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Simpan</Text>
