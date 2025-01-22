@@ -15,14 +15,28 @@ const LoginScreen = () => {
     const handleLogin = async () => {
         try {
             const response = await axios.post(`${API_URL}/api/auth/login`, { email, password });
-            const { token } = response.data.data;
+            const { token, role } = response.data.data;
             await AsyncStorage.setItem("token", token);
-            Alert.alert("Login successful!")
-            router.replace("/murid/MuridScreen")
+            await AsyncStorage.setItem("role", role);
+        
+            Alert.alert("Login successful!");
+        
+            if (role === "teacher") {
+                router.replace("/guru/GuruNavigator");
+            } else if (role === "student") {
+                router.replace("/murid/MuridScreen");
+            } else {
+                Alert.alert("Login Failed", "Unknown role.");
+            }
         } catch (error) {
-            const errorMessage = (error as any).response?.data?.message || "An error occurred";
-            Alert.alert(errorMessage)
-            
+            if (error.response) {
+                const errorMessage = error.response.data.message || "An error occurred";
+                Alert.alert("Login Failed", errorMessage);
+            } else if (error.request) {
+                Alert.alert("Login Failed", "No response received from server.");
+            } else {
+                Alert.alert("Login Failed", "Something went wrong.");
+            }
         }
     };
 

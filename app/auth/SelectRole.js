@@ -1,20 +1,27 @@
 import React from 'react';
-import {useRouter} from "expo-router";
+import { useRouter } from 'expo-router';
 import { View, Text, Image, TouchableOpacity, StyleSheet, Dimensions, ScrollView, SafeAreaView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
 const SelectRole = () => {
   const router = useRouter();
-  const kembali = () => {
-    router.replace('/auth/SignUpScreen3');
+
+  // Fungsi untuk menyimpan role dan navigasi ke SignUpScreen
+  const handleRoleSelection = async (role) => {
+    try {
+      // Simpan role ke AsyncStorage
+      await AsyncStorage.setItem('role', role);
+      // Arahkan ke SignUpScreen
+      router.replace('/auth/SignUpScreen');
+    } catch (error) {
+      console.error('Gagal menyimpan role:', error);
+    }
   };
 
-  const SingupGuru = () => {
-    router.replace('/auth/SignUpScreenGuru');
-  };
-  const SingupMurid = () => {
-    router.replace('/auth/SignUpScreenMurid');
+  const kembali = () => {
+    router.replace('/auth/SignUpScreen3');
   };
 
   return (
@@ -22,21 +29,37 @@ const SelectRole = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.container}>
           <View style={styles.textLayout}>
-          <Text style={styles.title1}>Satu lagi...{'\n'}Pilih profesi anda</Text>
-          <Text style={styles.title2}>Sebagai apakah kamu disini?</Text>
+            <Text style={styles.title1}>Satu lagi...{'\n'}Pilih profesi anda</Text>
+            <Text style={styles.title2}>Sebagai apakah kamu disini?</Text>
           </View>
           <View>
-          <TouchableOpacity style={styles.button} onPress={SingupGuru}>
-            <Image style={styles.gambar} source={require('../../assets/images/guru.png')} />
-            <Text style={styles.buttonText}>Guru</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button2} onPress={SingupMurid}>
-            <Image style={styles.gambar2} source={require('../../assets/images/murid.png')} />
-            <Text style={styles.buttonText}>Murid</Text>
-          </TouchableOpacity>
-          <Text style={styles.link} onPress={kembali}>
-            kembali
-          </Text>
+            {/* Tombol Guru */}
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => handleRoleSelection('teacher')}
+            >
+              <Image
+                style={styles.gambar}
+                source={require('../../assets/images/guru.png')}
+              />
+              <Text style={styles.buttonText}>Guru</Text>
+            </TouchableOpacity>
+
+            {/* Tombol Murid */}
+            <TouchableOpacity
+              style={styles.button2}
+              onPress={() => handleRoleSelection('student')}
+            >
+              <Image
+                style={styles.gambar2}
+                source={require('../../assets/images/murid.png')}
+              />
+              <Text style={styles.buttonText}>Murid</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.link} onPress={kembali}>
+              kembali
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -108,8 +131,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 20
-    
+    marginBottom: 20,
   },
   link: {
     color: 'blue',
@@ -126,9 +148,9 @@ const styles = StyleSheet.create({
     width: 158,
     height: 199,
   },
-  textLayout:{
+  textLayout: {
     alignItems: 'baseline',
-    marginBottom: 40
+    marginBottom: 40,
   },
 });
 

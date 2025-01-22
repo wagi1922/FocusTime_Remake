@@ -1,6 +1,6 @@
 import 'react-native-reanimated';
-import { useEffect,useState } from 'react';
 import { useFonts } from 'expo-font';
+import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -13,22 +13,26 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const router = useRouter();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
-
+  const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
-        setIsAuthenticated(!!token);
+        const role = await AsyncStorage.getItem('role');
+        setIsAuthenticated(!!token); // Set true if token exists
+        setUserRole(role || ''); // Use empty string if role is null
+      } catch (error) {
+        console.error('Error checking auth:', error);
       } finally {
         setIsLoading(false);
-        SplashScreen.hideAsync();
+        SplashScreen.hideAsync(); // Hide splash screen after loading
       }
     };
 
@@ -40,15 +44,19 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        router.replace('/murid/MuridScreen');
+        if (userRole === 'student') {
+          router.replace('/murid/MuridScreen');
+        } else if (userRole === 'teacher') {
+          router.replace('/guru/GuruNavigator');
+        }
       } else {
-        router.replace('/guru/GuruNavigator');
+        router.replace('/auth/LoginScreen');
       }
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, userRole, isLoading]);
 
   if (!loaded || isLoading) {
-    return null;
+    return null; // Return null until fonts are loaded and data is fetched
   }
 
   return (
@@ -59,8 +67,7 @@ export default function RootLayout() {
         <Stack.Screen name="auth/SignUpScreen2" options={{ headerShown: false }} />
         <Stack.Screen name="auth/SignUpScreen3" options={{ headerShown: false }} />
         <Stack.Screen name="auth/SelectRole" options={{ headerShown: false }} />
-        <Stack.Screen name="auth/SignUpScreenGuru" options={{ headerShown: false }} />
-        <Stack.Screen name="auth/SignUpScreenMurid" options={{ headerShown: false }} />
+        <Stack.Screen name="auth/SignUpScreen" options={{ headerShown: false }} />
         <Stack.Screen name="murid" options={{ headerShown: false }} />
         <Stack.Screen name="guru/GuruNavigator" options={{ headerShown: false }} />
         <Stack.Screen name="Notifikasi" options={{ headerShown: false, title: 'Notifikasi' }} />

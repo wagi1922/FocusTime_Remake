@@ -1,9 +1,21 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
 const HeaderGuru = () => {
   const navigation = useNavigation();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+      router.replace('/auth/LoginScreen');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const handleNotificationClick = () => {
     navigation.navigate('Notif');
@@ -12,16 +24,18 @@ const HeaderGuru = () => {
   return (
     <View style={styles.headerContainer}>
       {/* Logout Icon */}
-      <Image
-        source={require('../../assets/images/log-out-guru.png')}
-        
-      />
+      <TouchableOpacity onPress={handleLogout}>
+        <Image
+          source={require('../../assets/images/log-out-guru.png')}
+          style={styles.logoutIcon}
+        />
+      </TouchableOpacity>
 
       {/* Profile Section */}
       <View style={styles.profileSection}>
         <Image
           source={require('../../assets/images/avatar4.png')}
-          
+          style={styles.profileImage}
         />
         <Text style={styles.profileName}>Wagi Artono</Text>
       </View>
@@ -30,11 +44,10 @@ const HeaderGuru = () => {
       <View style={styles.taskInfoContainer}>
         <View style={styles.taskInfoBox}>
           <Text style={styles.taskTitle}>Total yang belum kumpul tugas</Text>
-          
         </View>
         <View style={styles.taskCountBox}>
-            <Text style={styles.taskCount}>5</Text>
-          </View>
+          <Text style={styles.taskCount}>5</Text>
+        </View>
       </View>
 
       {/* Notification Icon */}
@@ -93,26 +106,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#161D6F',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderBottomLeftRadius:8,
-    borderTopLeftRadius:8,
+    borderBottomLeftRadius: 8,
+    borderTopLeftRadius: 8,
   },
   taskTitle: {
     fontSize: 12,
     color: '#FFFFFF',
-    
   },
   taskCountBox: {
     backgroundColor: '#FFFFFF',
     borderBottomRightRadius: 8,
     borderTopRightRadius: 8,
-    padding:10
+    padding: 10,
   },
   taskCount: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#161D6F',
   },
-  
+  notificationIcon: {
+    width: 24,
+    height: 24,
+  },
 });
 
 export default HeaderGuru;

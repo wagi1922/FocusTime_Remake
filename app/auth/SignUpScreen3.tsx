@@ -9,9 +9,10 @@ import {
   Image, 
   Dimensions, 
   SafeAreaView, 
-  ScrollView 
+  ScrollView,
+  Alert
 } from 'react-native';
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const { width, height } = Dimensions.get('window');
 
 const avatarImages: any[] = [
@@ -25,12 +26,16 @@ const avatarImages: any[] = [
 const SignUpScreen3: React.FC = () => {
   const router = useRouter();
   const [selectedAvatar, setSelectedAvatar] = useState<number | null>(null);
-
+  const [username, setUsername] = useState("");
   const kembali = (): void => {
     router.replace('/auth/SignUpScreen2');
   };
-
-  const handleSignup2 = (): void => {
+  const next =  async () => {
+      if (!username) {
+        Alert.alert("Username Tidak boleh Kosong");
+        return;
+      }
+    await AsyncStorage.setItem('username', username);
     router.replace('/auth/SelectRole');
   };
 
@@ -49,7 +54,13 @@ const SignUpScreen3: React.FC = () => {
           <Image style={styles.gambar} source={require('../../assets/images/singup3.png')} />
           <View style={styles.textLayout1}>
           <Text style={styles.title2}>Siapa nama kamu?</Text>
-          <TextInput style={styles.input} placeholder="Masukkan nama Anda" />
+          <TextInput
+            style={styles.input}
+            placeholder="Masukan username anda"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+          />
           <Text style={styles.title3}>Pilih avatar yang kamu suka~</Text>
           </View>
           <View style={styles.avatarContainer}>
@@ -66,7 +77,7 @@ const SignUpScreen3: React.FC = () => {
             ))}
           </View>
           <View style={styles.buttonLayout}>
-          <TouchableOpacity style={styles.button} onPress={handleSignup2}>
+          <TouchableOpacity style={styles.button} onPress={next}>
             <Text style={styles.buttonText}>Lanjut</Text>
           </TouchableOpacity>
           <Text style={styles.link} onPress={kembali}>
