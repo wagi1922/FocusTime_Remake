@@ -11,7 +11,7 @@ const SignUpScreenGuru: React.FC = () => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState(""); // Variabel untuk konfirmasi password
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [show, setShow] = useState<boolean>(false);
   const [birthDate, setbirthDate] = useState<Date>(new Date());
   const [role, setRole] = useState('');
