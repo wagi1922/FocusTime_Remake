@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
-import API_URL from "../../config/config";
+import API_URL from "@/config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
@@ -33,7 +33,7 @@ const HeaderEdit = () => {
     try {
       const token = await AsyncStorage.getItem("token");
       if (!token) throw new Error("Token tidak ditemukan. Silakan login kembali.");
-      const response = await axios.get<{ data: UserProfile }>(`${API_URL}/api/profile`, {
+      const response = await axios.get<{ data: UserProfile }>(`${API_URL}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfile(response.data.data);

@@ -8,7 +8,7 @@ import {
   Image,
 } from 'react-native';
 
-const ModalComponentSukses = ({ isVisible, onClose, username }) => {
+const ModalComponentSukses = ({ isVisible, onClose, code }) => {
   return (
     <Modal
       transparent={true}
@@ -27,12 +27,12 @@ const ModalComponentSukses = ({ isVisible, onClose, username }) => {
           />
           <Text style={styles.title}>Berhasil Membuat Kelas!</Text>
           <View style={styles.codeBox}>
-            <Text style={styles.codeText}>{username || 'Unknown Code'}</Text>
+            <Text style={styles.codeText}>{code || 'Unknown Code'}</Text>
           </View>
           <TouchableOpacity
             style={styles.copyButton}
             onPress={() => {
-              console.log(username || 'Unknown Code');
+              console.log(code || 'Unknown Code');
             }}
           >
             <Text style={styles.copyText}>Salin</Text>
@@ -65,7 +65,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   closeText: {
-    fontSize: 18,
+    fontSize: 25,
+    right: 10,
     fontWeight: 'bold',
     color: '#999',
   },

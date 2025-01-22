@@ -1,16 +1,25 @@
-import React from 'react';
+import React,{ useEffect, useState } from 'react';
 import { TouchableOpacity, Text, StyleSheet, View, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+let globalColorIndex = 0;
 const CardKelasGuru = ({ title, subtitle, totalSiswa }) => {
   const navigation = useNavigation();
+
+  const [cardColor, setCardColor] = useState('#98DED9');
+
+  useEffect(() => {
+    const colors = ['#98DED9', '#C7FFD8'];
+    setCardColor(colors[globalColorIndex % colors.length]);
+    globalColorIndex += 1;
+  }, []);
 
   const handlePress = () => {
     navigation.navigate('DetailKelas', { title, subtitle, totalSiswa });
   };
 
   return (
-    <TouchableOpacity style={styles.cardContainer} onPress={handlePress}>
+    <TouchableOpacity style={[styles.cardContainer, { backgroundColor: cardColor }]}  onPress={handlePress}>
       <View>
         
       </View>

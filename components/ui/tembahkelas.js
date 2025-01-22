@@ -1,14 +1,42 @@
+import API_URL from "@/config/config";
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, Modal, TouchableOpacity, TextInput } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, StyleSheet, Image, Modal, TouchableOpacity, TextInput, Alert } from 'react-native';
 
 const TambahComponent = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [kodeKelas, setKodeKelas] = useState('');
 
-  const handleInput = () => {
-    console.log(`Kode kelas yang dimasukkan: ${kodeKelas}`);
-    setKodeKelas('');
-    setModalVisible(false);
+  const joinClass = async () => {
+    if (!kodeKelas.trim()) {
+      Alert.alert('Error', 'Kode tidak boleh kosong!');
+      return;
+    }
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('Token tidak ditemukan. Silakan login kembali.');
+
+      const response = await fetch(`${API_URL}/api/classes/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ code: kodeKelas }),
+      });
+
+      if (response.ok) {
+        console.log(`Kode kelas yang dimasukkan: ${kodeKelas}`);
+        setModalVisible(false);
+        Alert.alert('Success', 'Berhasil bergabung ke kelas!');
+      } else {
+        const result = await response.json();
+        Alert.alert('Error', result.message || 'Gagal bergabung');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', error.message || 'Terjadi kesalahan saat memasukkan kode');
+    }
   };
 
   return (
@@ -39,7 +67,7 @@ const TambahComponent = () => {
             />
             <TouchableOpacity 
               style={styles.button} 
-              onPress={handleInput}
+              onPress={joinClass}
             >
               <Text style={styles.buttonText}>Gabung</Text>
             </TouchableOpacity>
@@ -53,8 +81,8 @@ const TambahComponent = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    left: 300,
-    top: 480
+    left: 315,
+    top: 700
   },
   image: {
     width: 63,

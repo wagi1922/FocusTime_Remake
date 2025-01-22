@@ -1,5 +1,17 @@
-import React, { useState, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, Text, TextInput, Alert, FlatList, Animated } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import API_URL from "@/config/config";
+import { 
+  View, 
+  StyleSheet, 
+  TouchableOpacity, 
+  Modal, 
+  Text, 
+  TextInput, 
+  Alert, 
+  FlatList, 
+  Animated 
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CardKelasGuru from '@/components/guru/ComponenKelas';
 import { Ionicons } from "@expo/vector-icons";
 import ModalComponentSukses from '@/components/guru/ModalSukses';
@@ -9,29 +21,84 @@ const KelasGuru = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [className, setClassName] = useState('');
+  const [code, setCode] = useState('');
+  const [classes, setClasses] = useState([]);
 
-  const [code, setcode] = useState('yusn009');
+  useEffect(() => {
+    fetchClasses();
+  }, []);
 
-  const [classes, setClasses] = useState([
-    {
-      id: '1',
-      title: "Matematika - XII A",
-      subtitle: "Wagi Artono",
-      totalSiswa: 32
-    },
-    {
-      id: '2',
-      title: "Fisika - XI B",
-      subtitle: "Dewi Rahayu",
-      totalSiswa: 28
-    },
-    {
-      id: '3',
-      title: "Kimia - XI C",
-      subtitle: "Anita Sari",
-      totalSiswa: 25
+  // Fungsi untuk mengambil data kelas
+  const fetchClasses = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('Token tidak ditemukan. Silakan login kembali.');
+  
+      const response = await fetch(`${API_URL}/api/classes/teacher`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        const { data } = result;
+  
+        if (Array.isArray(data)) {
+          setClasses(
+            data.map((item) => ({
+              id: item.id,
+              title: item.name,
+              subtitle: item.teacherName || 'Guru Tidak Diketahui',
+              totalSiswa: item.students || 0,
+            }))
+          );
+        } else {
+          console.error("Data dari API tidak berbentuk array:", result);
+          setClasses([]);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error("Error dari API:", errorText);
+        Alert.alert('Error', 'Gagal mengambil data kelas');
+      }
+    } catch (error) {
+      console.error('Kesalahan saat mengambil data kelas:', error);
+      Alert.alert('Error', error.message || 'Terjadi kesalahan saat mengambil data kelas');
     }
-  ]);
+  };
+
+  // Fungsi untuk menambahkan kelas baru
+  const addClass = async () => {
+    if (!className.trim()) {
+      Alert.alert('Error', 'Nama kelas tidak boleh kosong!');
+      return;
+    }
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('Token tidak ditemukan. Silakan login kembali.');
+
+      const response = await fetch(`${API_URL}/api/classes/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: className }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const {code} = result.data;
+        await fetchClasses();
+        setCode(code || 'Tidak ada kode');
+        hideModal();
+        handleOpenModal();
+      } else {
+        Alert.alert('Error', 'Gagal menambahkan kelas');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Terjadi kesalahan saat menambahkan kelas');
+    }
+  };
 
   const showModal = () => {
     setModalVisible(true);
@@ -49,33 +116,18 @@ const KelasGuru = ({ navigation }) => {
       useNativeDriver: true,
     }).start(() => {
       setModalVisible(false);
-      setClassName(''); // Reset input when modal closes
+      setClassName(''); // Reset input saat modal ditutup
     });
   };
 
-  const handleCardPress = (title, subtitle, totalSiswa) => {
-    navigation.navigate('DetailKelas', { title, subtitle, totalSiswa });
-  };
-
-  const handleAddClass = () => {
-    if (!className.trim()) {
-      Alert.alert('Error', 'Please enter class name');
-      return;
+  const handleCardPress = async (id) => {
+    try {
+      // Simpan id ke AsyncStorage
+      await AsyncStorage.setItem('classId', id);
+      navigation.navigate('DetailKelas');
+    } catch (error) {
+      console.error('Gagal menyimpan id kelas ke AsyncStorage:', error);
     }
-
-    // Here you would typically make an API call to the backend
-    // For now, we'll simulate adding with dummy teacher data
-    const newClass = {
-      id: Date.now().toString(),
-      title: className,
-      subtitle: "Teacher Name", // This would come from backend
-      totalSiswa: 0 // This would come from backend
-    };
-
-    setClasses([...classes, newClass]);
-    hideModal();
-    handleOpenModal();
-
   };
 
   const renderItem = ({ item }) => (
@@ -83,12 +135,10 @@ const KelasGuru = ({ navigation }) => {
       title={item.title}
       subtitle={item.subtitle}
       totalSiswa={item.totalSiswa}
-      onPress={() => handleCardPress(item.title, item.subtitle, item.totalSiswa)}
+      onPress={() => handleCardPress(item.id)}
     />
   );
 
-
-  // modal untuk menampilkan sukses
   const handleOpenModal = () => {
     setIsModalVisible(true);
   };
@@ -102,70 +152,57 @@ const KelasGuru = ({ navigation }) => {
       <FlatList
         data={classes}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
       />
-
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={showModal}
-      >
+      <TouchableOpacity style={styles.addButton} onPress={showModal}>
         <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity>
 
-      <Modal
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={hideModal}
-        animationType="none"
-      >
+      <Modal transparent={true} visible={modalVisible} onRequestClose={hideModal}>
         <View style={styles.modalOverlay}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.modalBackground}
             onPress={hideModal}
             activeOpacity={1}
           />
           <Animated.View
-            style={[
+            style={[ 
               styles.modalContent,
               {
-                transform: [{
-                  translateY: slideAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [600, 0]
-                  })
-                }]
-              }
+                transform: [
+                  {
+                    translateY: slideAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [600, 0],
+                    }),
+                  },
+                ],
+              },
             ]}
           >
             <View style={styles.modalHeader}>
               <View style={styles.modalIndicator} />
             </View>
-
-            <Text style={styles.modalTitle} onPress={hideModal}>Buat Kelas</Text>
-            
+            <Text style={styles.modalTitle}>Buat Kelas</Text>
             <TextInput
               style={styles.input}
-              placeholder="Class Name (e.g., Matematika - XII A)"
+              placeholder="Nama Kelas (contoh: Matematika - XII A)"
               value={className}
               onChangeText={setClassName}
               autoFocus
             />
-
             <View style={styles.buttonContainer}>
-
-              <TouchableOpacity
-                style={[styles.button, styles.addClassButton]}
-                onPress={handleAddClass}
-              >
-                <Text style={styles.buttonText}>Add Class</Text>
+              <TouchableOpacity style={[styles.button, styles.addClassButton]} onPress={addClass}>
+                <Text style={styles.buttonText}>Tambahkan Kelas</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
         </View>
       </Modal>
-      <ModalComponentSukses isVisible={isModalVisible} onClose={handleCloseModal} code={code}/>
+
+      <ModalComponentSukses isVisible={isModalVisible} onClose={handleCloseModal} code={code} />
     </View>
   );
 };
@@ -186,11 +223,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 5,
   },
-  addButtonText: {
-    color: 'white',
-    fontSize: 30,
-    fontWeight: 'bold',
-  },
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -204,18 +236,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    paddingTop: 10,
-  },
-  modalHeader: {
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  modalIndicator: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#DDD',
-    borderRadius: 2,
-    marginVertical: 8,
   },
   modalTitle: {
     fontSize: 20,
@@ -230,23 +250,15 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
   button: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 5,
+    height: 50,
+    justifyContent: "center",
+    paddingBottom: 2,
+    borderRadius: 20,
     marginHorizontal: 5,
-  },
-  cancelButton: {
-    backgroundColor: '#ff6b6b',
   },
   addClassButton: {
     backgroundColor: '#161D6F',
-    borderRadius:20,
   },
   buttonText: {
     color: 'white',

@@ -1,9 +1,47 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import axios from "axios";
 import {useRouter} from "expo-router";
+import API_URL from "@/config/config";
+import React, {useState,useEffect} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, Image, StyleSheet, TouchableOpacity,ActivityIndicator } from 'react-native';
+
+
+type UserProfile = {
+  username: string;
+};
 
 const Header = () => {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Token tidak ditemukan. Silakan login kembali.");
+      const response = await axios.get<{ data: UserProfile }>(`${API_URL}/api/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProfile(response.data.data);
+    } catch (error) {
+      console.error("Gagal memuat profil:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+        <Text>Memuat data...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.header}>
@@ -14,7 +52,7 @@ const Header = () => {
             style={styles.profileImage}
           />
           <View style={styles.profileText}>
-            <Text style={styles.name}>Maulana Riski</Text>
+            <Text style={styles.name}>{profile?.username || "Nama tidak tersedia"}</Text>
             <Text style={styles.rank}>#1_dikelas</Text>
           </View>
         </View>
@@ -34,7 +72,7 @@ const Header = () => {
           </View>
         </View>
         <TouchableOpacity
-          onPress={() => router.replace('/Notifikasi')}
+          onPress={() => router.replace('/NotifikasiSiswa')}
         >
           <Image
             source={require('../../assets/images/bell.png')}
@@ -50,7 +88,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     paddingHorizontal: 16,
     paddingVertical: 30,
     backgroundColor: '#B4ECE3',
@@ -145,6 +183,11 @@ const styles = StyleSheet.create({
     top: 10,
     margin: 10,
     marginLeft: 15,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

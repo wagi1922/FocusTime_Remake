@@ -1,12 +1,19 @@
-import React from 'react';
+import axios from "axios";
+import React, {useState,useEffect} from 'react';
 import { useRouter } from 'expo-router';
-import { useNavigation } from '@react-navigation/native';
+import API_URL from "@/config/config";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity,ActivityIndicator } from 'react-native';
+
+interface UserProfile {
+  username: string;
+  email: string;
+}
 
 const HeaderGuru = () => {
-  const navigation = useNavigation();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   const handleLogout = async () => {
     try {
@@ -17,9 +24,34 @@ const HeaderGuru = () => {
     }
   };
 
-  const handleNotificationClick = () => {
-    navigation.navigate('Notif');
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) throw new Error("Token tidak ditemukan. Silakan login kembali.");
+      const response = await axios.get<{ data: UserProfile }>(`${API_URL}/api/auth/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProfile(response.data.data);
+    } catch (error) {
+      console.error("Gagal memuat profil:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+        <Text>Memuat data...</Text>
+      </View>
+    );
+  }
+
 
   return (
     <View style={styles.headerContainer}>
@@ -37,7 +69,10 @@ const HeaderGuru = () => {
           source={require('../../assets/images/avatar4.png')}
           style={styles.profileImage}
         />
-        <Text style={styles.profileName}>Wagi Artono</Text>
+        <View style={styles.profileLayout}>
+        <Text style={styles.profileName}>{profile?.username || ""}</Text>
+        <Text style={styles.email}>{profile?.email || ""}</Text>
+        </View>
       </View>
 
       {/* Task Info */}
@@ -51,7 +86,7 @@ const HeaderGuru = () => {
       </View>
 
       {/* Notification Icon */}
-      <TouchableOpacity onPress={handleNotificationClick}>
+      <TouchableOpacity onPress={() => router.replace('/NotifikasiGuru')}>
         <Image
           source={require('../../assets/images/bell.png')}
           style={styles.notificationIcon}
@@ -112,6 +147,10 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 12,
     color: '#FFFFFF',
+  }, 
+  email: {
+    fontSize: 12,
+    color: 'black',
   },
   taskCountBox: {
     backgroundColor: '#FFFFFF',
@@ -128,6 +167,15 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  profileLayout:{
+    flexDirection: 'column',
+    top: 1
+  }
 });
 
 export default HeaderGuru;

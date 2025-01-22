@@ -70,7 +70,8 @@ export default function RootLayout() {
         <Stack.Screen name="auth/SignUpScreen" options={{ headerShown: false }} />
         <Stack.Screen name="murid" options={{ headerShown: false }} />
         <Stack.Screen name="guru/GuruNavigator" options={{ headerShown: false }} />
-        <Stack.Screen name="Notifikasi" options={{ headerShown: false, title: 'Notifikasi' }} />
+        <Stack.Screen name="NotifikasiGuru" options={{ headerShown: false, title: 'Notifikasi' }} />
+        <Stack.Screen name="NotifikasiSiswa" options={{ headerShown: false, title: 'Notifikasi' }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
