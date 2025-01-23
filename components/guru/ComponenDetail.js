@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import API_URL from "@/config/config";
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,12 +9,14 @@ import {
   Modal,
   TextInput,
   Button,
+  Alert
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import HeaderGuru from './Header-guru';
 import NamaMurid from './NamaSiswaGuru';
 import CardTugasGuru from './tugas';
 import CardMateriGuru from './materi';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DetailKelasScreen = ({ route }) => {
   const navigation = useNavigation(); // Pindahkan ke atas agar bisa digunakan di seluruh fungsi
@@ -22,7 +25,7 @@ const DetailKelasScreen = ({ route }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [title, setTitle] = useState(initialTitle);
   const [classTitle, setClassTitle] = useState(initialTitle);
-  const [classCode, setClassCode] = useState('123456');
+  const [classCode, setClassCode] = useState([]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -37,17 +40,79 @@ const DetailKelasScreen = ({ route }) => {
     }
   };
 
-  const handleSave = () => {
-    setTitle(classTitle);
-    console.log('Updated Title:', classTitle);
-    console.log('Class Code:', classCode);
-    console.log('Class Link:', classLink);
-    setIsModalVisible(false);
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  // Fungsi untuk mengambil data kelas
+  const fetchClasses = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const classId = await AsyncStorage.getItem('classId');
+      if (!token) throw new Error('Token tidak ditemukan. Silakan login kembali.');
+      if (!classId) throw new Error('ID kelas tidak ditemukan. Silakan login kembali.');
+  
+      const response = await fetch(`${API_URL}/api/classes/${classId}/code`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        const { code } = result;
+  
+        if (code) {
+          setClassCode(code);
+        } else {
+          console.error("Data dari API tidak berbentuk array:", result);
+          setClassCode([]);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error("Error dari API:", errorText);
+        Alert.alert('Error', 'Gagal mengambil data kelas');
+      }
+    } catch (error) {
+      console.error('Kesalahan saat mengambil data kelas:', error);
+      Alert.alert('Error', error.message || 'Terjadi kesalahan saat mengambil data kelas');
+    }
   };
 
+  const editClass = async () => {
+    if (!classTitle.trim()) {
+      Alert.alert('Error', 'Nama kelas tidak boleh kosong!');
+      return;
+    }
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const classId = await AsyncStorage.getItem('classId');
+      if (!token) throw new Error('Token tidak ditemukan. Silakan login kembali.');
+      if (!classId) throw new Error('ID kelas tidak ditemukan. Silakan login kembali.');
+
+      const response = await fetch(`${API_URL}/api/classes/${classId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: classTitle }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const {name} = result.data;
+        setTitle(name);
+        console.log('Updated Title:', name);
+        setIsModalVisible(false)
+      } else {
+        Alert.alert('Error', 'Gagal menambahkan kelas');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Terjadi kesalahan saat menambahkan kelas');
+    }
+  };
   
   const kembali = () => {
-    navigation.navigate('Home'); // Menggunakan navigation dari useNavigation
+    navigation.navigate('Home');
   };
 
   return (
@@ -116,9 +181,10 @@ const DetailKelasScreen = ({ route }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle} onPress={() => setIsModalVisible(false)}>
-              Edit Kelas
-            </Text>
+            <TouchableOpacity style={styles.buttnLayout} onPress={() => setIsModalVisible(false)}>
+              <Image style={styles.buttonImage} source={require('../../assets/images/back.png')}/>
+              <Text style={styles.modalTitle}>Edit Kelas</Text>
+            </TouchableOpacity>
             <TextInput
               style={styles.input}
               value={classTitle}
@@ -127,8 +193,8 @@ const DetailKelasScreen = ({ route }) => {
             />
             <Text style={styles.input}>{classCode}</Text>
             <View style={styles.modalButtonContainer}>
-              <Button title="Simpan" onPress={handleSave} />
-              <Button title="Delet" onPress={handleSave} />
+              <Button title="Simpan" onPress={editClass} />
+              <Button title="Delet" onPress={kembali} />
             </View>
           </View>
         </View>
@@ -251,6 +317,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginLeft: 10,
     fontWeight: '700'
+  },
+  buttnLayout:{
+    flexDirection: 'row',
+    padding: 2
+  },
+  buttonImage:{
+    marginRight: 5,
+    top: 2
   }
 });
 

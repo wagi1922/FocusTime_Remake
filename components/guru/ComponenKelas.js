@@ -1,9 +1,10 @@
 import React,{ useEffect, useState } from 'react';
 import { TouchableOpacity, Text, StyleSheet, View, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 let globalColorIndex = 0;
-const CardKelasGuru = ({ title, subtitle, totalSiswa }) => {
+const CardKelasGuru = ({ id, title, subtitle, totalSiswa }) => {
   const navigation = useNavigation();
 
   const [cardColor, setCardColor] = useState('#98DED9');
@@ -14,7 +15,8 @@ const CardKelasGuru = ({ title, subtitle, totalSiswa }) => {
     globalColorIndex += 1;
   }, []);
 
-  const handlePress = () => {
+  const handlePress = async () => {
+    await AsyncStorage.setItem('classId', id);
     navigation.navigate('DetailKelas', { title, subtitle, totalSiswa });
   };
 

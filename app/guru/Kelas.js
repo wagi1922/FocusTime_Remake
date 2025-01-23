@@ -120,22 +120,13 @@ const KelasGuru = ({ navigation }) => {
     });
   };
 
-  const handleCardPress = async (id) => {
-    try {
-      // Simpan id ke AsyncStorage
-      await AsyncStorage.setItem('classId', id);
-      navigation.navigate('DetailKelas');
-    } catch (error) {
-      console.error('Gagal menyimpan id kelas ke AsyncStorage:', error);
-    }
-  };
 
   const renderItem = ({ item }) => (
     <CardKelasGuru
+      id={item.id}
       title={item.title}
       subtitle={item.subtitle}
       totalSiswa={item.totalSiswa}
-      onPress={() => handleCardPress(item.id)}
     />
   );
 

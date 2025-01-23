@@ -1,22 +1,79 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, Animated, Dimensions, TouchableWithoutFeedback, StyleSheet } from 'react-native';
+import API_URL from "@/config/config";
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  FlatList, 
+  Image, 
+  TouchableOpacity, 
+  Animated, 
+  Dimensions, 
+  TouchableWithoutFeedback, 
+  StyleSheet, 
+  Alert 
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const NamaSiswaGuru = ({ navigation }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  const [siswa, setSiswa] = useState([
-    { id: '1', name: 'Haikal Rahman', kelas: '#1_dikelas', img: 'https://via.placeholder.com/50' },
-    { id: '2', name: 'Maulana Riski', kelas: '#1_dikelas', img: 'https://via.placeholder.com/50' },
-    { id: '3', name: 'Haikal Rahman', kelas: '#1_dikelas', img: 'https://via.placeholder.com/50' },
-    { id: '4', name: 'Maulana Riski', kelas: '#1_dikelas', img: 'https://via.placeholder.com/50' },
-    { id: '5', name: 'Haikal Rahman', kelas: '#1_dikelas', img: 'https://via.placeholder.com/50' },
-    { id: '6', name: 'Maulana Riski', kelas: '#1_dikelas', img: 'https://via.placeholder.com/50' },
-  ]);
-
-  const guru = { name: 'Wagi Artono', img: 'https://via.placeholder.com/50' };
+  const [teacher, setTeacher] = useState(null);
+  const [student, setStudent] = useState([]);
 
   const screenHeight = Dimensions.get('window').height;
   const [translateY] = useState(new Animated.Value(screenHeight));
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  const fetchClasses = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const classId = await AsyncStorage.getItem('classId');
+      if (!token) throw new Error('Token tidak ditemukan. Silakan login kembali.');
+      if (!classId) throw new Error('ID kelas tidak ditemukan. Silakan login kembali.');
+
+      const response = await fetch(`${API_URL}/api/classes/${classId}/members`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        const { teacher, student } = result;
+
+        if (teacher) {
+          setTeacher({
+            id: teacher._id,
+            username: teacher.username,
+          });
+        } else {
+          console.error("Teacher data tidak ditemukan.");
+          setTeacher(null);
+        }
+
+        if (Array.isArray(student)) {
+          setStudent(
+            student.map((item) => ({
+              id: item._id,
+              username: item.username,
+            }))
+          );
+        } else {
+          console.error("Student data tidak berbentuk array:", student);
+          setStudent([]);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error("Error dari API:", errorText);
+        Alert.alert('Error', 'Gagal mengambil data kelas');
+      }
+    } catch (error) {
+      console.error('Kesalahan saat mengambil data kelas:', error);
+      Alert.alert('Error', error.message || 'Terjadi kesalahan saat mengambil data kelas');
+    }
+  };
 
   const PergiChat = (studentName) => {
     navigation.navigate('ChatGuru', { studentName });
@@ -40,7 +97,7 @@ const NamaSiswaGuru = ({ navigation }) => {
   };
 
   const handleDelete = () => {
-    setSiswa((prevSiswa) => prevSiswa.filter((item) => item.id !== selectedId));
+    setStudent((prevStudent) => prevStudent.filter((item) => item.id !== selectedId));
     closeModal();
   };
 
@@ -48,20 +105,23 @@ const NamaSiswaGuru = ({ navigation }) => {
     <View style={styles.sectionContainer}>
       <Text style={styles.sectionTitle}>Guru</Text>
       <View style={{ borderBottomWidth: 1 }} />
-      <View style={styles.guruContainer}>
-        <Image source={{ uri: guru.img }} style={styles.profileImage} />
-        <Text style={styles.guruName}>{guru.name}</Text>
-      </View>
+      {teacher ? (
+        <View style={styles.guruContainer}>
+          <Image style={styles.profileImage} source={require('../../assets/images/avatar4.png')}/>
+          <Text style={styles.guruName}>{teacher.username}</Text>
+        </View>
+      ) : (
+        <Text>Data guru tidak tersedia</Text>
+      )}
     </View>
   );
 
   const renderSiswa = ({ item }) => (
     <View style={styles.siswaContainer}>
       <View style={styles.leftContent}>
-        <Image source={{ uri: item.img }} style={styles.profileImage} />
-        <View>
-          <Text style={styles.siswaName}>{item.name}</Text>
-          <Text style={styles.siswaKelas}>{item.kelas}</Text>
+        <View style={styles.guruContainer}>
+        <Image style={styles.profileImage} source={require('../../assets/images/avatar2.png')}/>
+          <Text style={styles.siswaName}>{item.username}</Text>
         </View>
       </View>
       <TouchableOpacity
@@ -82,7 +142,7 @@ const NamaSiswaGuru = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Siswa</Text>
         <View style={{ borderBottomWidth: 1 }} />
         <FlatList
-          data={siswa}
+          data={student}
           renderItem={renderSiswa}
           keyExtractor={(item) => item.id}
         />
@@ -99,7 +159,15 @@ const NamaSiswaGuru = ({ navigation }) => {
                 ]}
               >
                 <View style={styles.modalContent}>
-                  <TouchableOpacity onPress={() => PergiChat(siswa.find(student => student.id === selectedId).name)} style={{ flexDirection: 'row' }}>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      const selectedStudent = student.find((s) => s.id === selectedId);
+                      if (selectedStudent) {
+                        PergiChat(selectedStudent.username);
+                      }
+                    }} 
+                    style={{ flexDirection: 'row' }}
+                  >
                     <Image source={require('../../assets/images/chat.png')} style={{ marginRight: 5 }} />
                     <Text>Chat</Text>
                   </TouchableOpacity>
@@ -133,10 +201,11 @@ const styles = StyleSheet.create({
   guruContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 1,
+    marginTop: 15,
+    padding: 5,
   },
   guruName: {
-    fontSize: 12,
+    fontSize: 20,
     fontWeight: '400',
   },
   siswaContainer: {
@@ -150,14 +219,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   profileImage: {
-    width: 50,
-    height: 50,
+    width: 42,
+    height: 42,
     borderRadius: 25,
-    marginRight: 10,
+    marginRight: 15,
     marginTop: 5,
   },
   siswaName: {
-    fontSize: 12,
+    fontSize: 15,
     fontWeight: '400',
   },
   siswaKelas: {
