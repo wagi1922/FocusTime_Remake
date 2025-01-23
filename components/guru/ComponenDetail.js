@@ -110,6 +110,32 @@ const DetailKelasScreen = ({ route }) => {
       Alert.alert('Error', error.message || 'Terjadi kesalahan saat menambahkan kelas');
     }
   };
+
+  const deleteClass = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const classId = await AsyncStorage.getItem('classId');
+      if (!token) throw new Error('Token tidak ditemukan. Silakan login kembali.');
+      if (!classId) throw new Error('ID kelas tidak ditemukan. Silakan login kembali.');
+  
+      const response = await fetch(`${API_URL}/api/classes/${classId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        Alert.alert('Sukses', result.message || 'Kelas berhasil dihapus');
+        navigation.navigate('Home');
+      } else {
+        const errorResult = await response.json();
+        Alert.alert('Error', errorResult.message || 'Gagal menghapus kelas');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Terjadi kesalahan saat menghapus kelas');
+    }
+  };
+  
   
   const kembali = () => {
     navigation.navigate('Home');
@@ -194,7 +220,7 @@ const DetailKelasScreen = ({ route }) => {
             <Text style={styles.input}>{classCode}</Text>
             <View style={styles.modalButtonContainer}>
               <Button title="Simpan" onPress={editClass} />
-              <Button title="Delet" onPress={kembali} />
+              <Button title="Delet" onPress={deleteClass} />
             </View>
           </View>
         </View>

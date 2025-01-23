@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, StyleSheet, Linking, Alert } from "react-
 import { Ionicons } from "@expo/vector-icons";
 
 const Card = ({ title, description, lampiran, onEditPress, onDeletePress }) => {
-  // Fungsi untuk membuka link
   const handleOpenLink = async (url) => {
     try {
       const supported = await Linking.canOpenURL(url);

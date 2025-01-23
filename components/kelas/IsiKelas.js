@@ -52,16 +52,13 @@ const IsiKelas = ({ navigation }) => {
     }
   };
 
-  const handleCardPress = (title, subtitle, totalSiswa) => {
-    navigation.navigate('DetailKelas', { title, subtitle, totalSiswa });
-  };
 
   const renderItem = ({ item }) => (
     <CardKelas
+      id={item.id}
       title={item.title}
       subtitle={item.subtitle}
       totalSiswa={item.totalSiswa}
-      onPress={() => handleCardPress(item.title, item.subtitle, item.totalSiswa)}
     />
   );
   

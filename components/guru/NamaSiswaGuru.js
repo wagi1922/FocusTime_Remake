@@ -19,7 +19,6 @@ const NamaSiswaGuru = ({ navigation }) => {
   const [selectedId, setSelectedId] = useState(null);
   const [teacher, setTeacher] = useState(null);
   const [student, setStudent] = useState([]);
-
   const screenHeight = Dimensions.get('window').height;
   const [translateY] = useState(new Animated.Value(screenHeight));
 

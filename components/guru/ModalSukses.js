@@ -33,6 +33,7 @@ const ModalComponentSukses = ({ isVisible, onClose, code }) => {
             style={styles.copyButton}
             onPress={() => {
               console.log(code || 'Unknown Code');
+              onClose();
             }}
           >
             <Text style={styles.copyText}>Salin</Text>

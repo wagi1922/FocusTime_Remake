@@ -51,7 +51,7 @@ const ModalForm = ({
         <TouchableOpacity
           style={[styles.saveButtonCustom, isSaveDisabled && styles.disabledButton]}
           onPress={onSave}
-          disabled={isSaveDisabled} // Nonaktifkan tombol jika input kosong
+          disabled={isSaveDisabled}
         >
           <Text style={styles.saveButtonText}>Simpan</Text>
         </TouchableOpacity>

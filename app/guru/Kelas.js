@@ -11,12 +11,12 @@ import {
   FlatList, 
   Animated 
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import CardKelasGuru from '@/components/guru/ComponenKelas';
 import { Ionicons } from "@expo/vector-icons";
+import CardKelasGuru from '@/components/guru/ComponenKelas';
 import ModalComponentSukses from '@/components/guru/ModalSukses';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const KelasGuru = ({ navigation }) => {
+const KelasGuru = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
