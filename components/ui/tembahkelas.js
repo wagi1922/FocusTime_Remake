@@ -29,6 +29,7 @@ const TambahComponent = () => {
         console.log(`Kode kelas yang dimasukkan: ${kodeKelas}`);
         setModalVisible(false);
         Alert.alert('Success', 'Berhasil bergabung ke kelas!');
+        navigation.navigate('IsiKelas');
       } else {
         const result = await response.json();
         Alert.alert('Error', result.message || 'Gagal bergabung');

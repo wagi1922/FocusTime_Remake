@@ -1,5 +1,5 @@
 import API_URL from "@/config/config";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   FlatList,
@@ -7,20 +7,21 @@ import {
   Animated,
   Dimensions,
   StyleSheet,
+  Alert,
 } from "react-native";
 import Card from "./Card";
 import ModalForm from "./ModalForm";
 import { Ionicons } from "@expo/vector-icons";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const screenHeight = Dimensions.get("window").height;
 
 const CardMateriGuru = () => {
   const [editedMateri, setEditedMateri] = useState("");
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editedLampiran, setEditedLampiran] = useState("");
   const [editedInstruksi, setEditedInstruksi] = useState("");
+  const [editedLampiran, setEditedLampiran] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
   const [modalY] = useState(new Animated.Value(screenHeight));
   const [activeCardIndex, setActiveCardIndex] = useState(null);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -30,46 +31,42 @@ const CardMateriGuru = () => {
     fetchClasses();
   }, []);
 
-  // Fungsi untuk mengambil data kelas
+  // Fetch data dari API
   const fetchClasses = async () => {
     try {
-      const token = await AsyncStorage.getItem('token');
-      const classId = await AsyncStorage.getItem('classId');
-      if (!token) throw new Error('Token tidak ditemukan. Silakan login kembali.');
-      if (!classId) throw new Error('ID kelas tidak ditemukan. Silakan login kembali.');
-  
+      const token = await AsyncStorage.getItem("token");
+      const classId = await AsyncStorage.getItem("classId");
+
+      if (!token || !classId) {
+        throw new Error("Token atau ID kelas tidak ditemukan. Silakan login kembali.");
+      }
+
       const response = await fetch(`${API_URL}/api/materials/${classId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       if (response.ok) {
         const result = await response.json();
-        const { data } = result;
-  
-        if (Array.isArray(data)) {
-          setCards(
-            data.map((item) => ({
-              id: item._id,
-              materi: item.title,
-              instruksi: item.description,
-              lampiran: item.documentLink,
-            }))
-          );
+        if (Array.isArray(result.data)) {
+          setCards(result.data.map((item) => ({
+            id: item._id,
+            materi: item.title,
+            instruksi: item.description,
+            lampiran: item.documentLink,
+          })));
         } else {
-          console.error("Data dari API tidak berbentuk array:", result);
           setCards([]);
         }
       } else {
         const errorText = await response.text();
-        console.error("Error dari API:", errorText);
-        Alert.alert('Error', 'Gagal mengambil data kelas');
+        Alert.alert("Error", `Gagal memuat data: ${errorText}`);
       }
     } catch (error) {
-      console.error('Kesalahan saat mengambil data kelas:', error);
-      Alert.alert('Error', error.message || 'Terjadi kesalahan saat mengambil data kelas');
+      Alert.alert("Error", error.message || "Terjadi kesalahan.");
     }
   };
 
+  // Modal handler
   const handleOpenModal = (index = null) => {
     setActiveCardIndex(index);
     if (index !== null) {
@@ -98,8 +95,9 @@ const CardMateriGuru = () => {
     }).start(() => setModalVisible(false));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (activeCardIndex !== null) {
+      // Edit mode
       const updatedCards = [...cards];
       updatedCards[activeCardIndex] = {
         ...updatedCards[activeCardIndex],
@@ -109,6 +107,7 @@ const CardMateriGuru = () => {
       };
       setCards(updatedCards);
     } else {
+      // Add new card
       const newCard = {
         id: cards.length + 1,
         materi: editedMateri,
@@ -120,13 +119,42 @@ const CardMateriGuru = () => {
     handleCloseModal();
   };
 
-  const handleDeleteCard = () => {
-    if (activeCardIndex !== null) {
-      const updatedCards = cards.filter((_, i) => i !== activeCardIndex);
-      setCards(updatedCards);
+  // Fungsi untuk menghapus materi dari backend
+  const deleteMateri = async (id) => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token tidak ditemukan. Silakan login kembali.");
+      }
+
+      const response = await fetch(`${API_URL}/api/materials/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        Alert.alert("Berhasil", "Materi berhasil dihapus.");
+        // Perbarui daftar materi setelah berhasil menghapus
+        fetchClasses();
+      } else {
+        const errorText = await response.text();
+        Alert.alert("Gagal", `Gagal menghapus materi: ${errorText}`);
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "Terjadi kesalahan.");
     }
-    setDeleteModalVisible(false);
   };
+
+  const handleDeleteCard = async () => {
+    if (activeCardIndex !== null) {
+      const selectedCard = cards[activeCardIndex];
+      await deleteMateri(selectedCard.id); // Hapus data dari backend
+      setDeleteModalVisible(false);
+    }
+  };
+  
 
   return (
     <View style={styles.container}>
@@ -134,16 +162,17 @@ const CardMateriGuru = () => {
         data={cards}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item, index }) => (
-        <Card
-          title={item.materi}
-          description={item.instruksi}
-          lampiran={item.lampiran}
-          onEditPress={() => handleOpenModal(index)}
-          onDeletePress={() => {
-            setActiveCardIndex(index);
-            setDeleteModalVisible(true);
-          }}
-        />)}
+          <Card
+            title={item.materi}
+            description={item.instruksi}
+            lampiran={item.lampiran}
+            onEditPress={() => handleOpenModal(index)}
+            onDeletePress={() => {
+              setActiveCardIndex(index);
+              setDeleteModalVisible(true);
+            }}
+          />
+        )}
       />
       <TouchableOpacity
         style={styles.addButton}
@@ -159,9 +188,10 @@ const CardMateriGuru = () => {
         editedMateri={editedMateri}
         setEditedMateri={setEditedMateri}
         editedInstruksi={editedInstruksi}
-        setEditedInstruksi={setEditedInstruksi} // Pastikan diteruskan
+        setEditedInstruksi={setEditedInstruksi}
         editedLampiran={editedLampiran}
         setEditedLampiran={setEditedLampiran}
+        isEditMode={activeCardIndex !== null}
       />
       <DeleteConfirmationModal
         visible={deleteModalVisible}
@@ -187,11 +217,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
 });
 

@@ -24,7 +24,7 @@ const Card = ({ title, description, lampiran, onEditPress, onDeletePress }) => {
           <TouchableOpacity onPress={onEditPress} style={styles.iconButton}>
             <Ionicons name="create-outline" size={20} color="black" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={onDeletePress} style={styles.iconButton}>
+          <TouchableOpacity onPress={onDeletePress} style={styles.iconButton}> 
             <Ionicons name="trash-outline" size={20} color="red" />
           </TouchableOpacity>
         </View>

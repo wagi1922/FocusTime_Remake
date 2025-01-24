@@ -1,8 +1,17 @@
+import API_URL from "@/config/config";
 import React from "react";
-import { Animated, Text,Image, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { 
+  Animated, 
+  Text, 
+  Image, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Alert 
+} from "react-native";
 
 const ModalForm = ({
-  visible,
   modalY,
   onClose,
   onSave,
@@ -12,8 +21,78 @@ const ModalForm = ({
   setEditedInstruksi,
   editedLampiran,
   setEditedLampiran,
+  isEditMode, // Menentukan apakah mode edit atau tambah
 }) => {
-  // Fungsi untuk memeriksa apakah semua input telah diisi
+  // Fungsi untuk menambahkan materi baru
+  const addMateri = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const classId = await AsyncStorage.getItem("classId");
+
+      if (!token) throw new Error("Token tidak ditemukan. Silakan login kembali.");
+      if (!classId) throw new Error("ID kelas tidak ditemukan. Silakan login kembali.");
+
+      const response = await fetch(`${API_URL}/api/materials/${classId}/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: editedMateri,
+          description: editedInstruksi,
+          documentLink: editedLampiran,
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert("Sukses", "Materi berhasil ditambahkan!");
+        onSave(); // Perbarui daftar materi
+        onClose(); // Tutup modal setelah menambahkan materi
+      } else {
+        const errorText = await response.text();
+        Alert.alert("Error", `Gagal menambahkan materi: ${errorText}`);
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "Terjadi kesalahan saat menambahkan materi.");
+    }
+  };
+
+  // Fungsi untuk mengedit materi
+  const editMateri = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const selectedItemId = await AsyncStorage.getItem("selectedItemId");
+      if (!token) throw new Error("Token tidak ditemukan. Silakan login kembali.");
+      if (!selectedItemId) throw new Error("ID materi tidak ditemukan. Pilih materi untuk diedit.");
+
+      const response = await fetch(`${API_URL}/api/materials/${selectedItemId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: editedMateri,
+          description: editedInstruksi,
+          documentLink: editedLampiran,
+        }),
+      });
+
+      if (response.ok) {
+        Alert.alert("Sukses", "Materi berhasil diperbarui!");
+        onSave(); // Perbarui daftar materi
+        onClose(); // Tutup modal setelah memperbarui materi
+      } else {
+        const errorText = await response.text();
+        Alert.alert("Error", `Gagal memperbarui materi: ${errorText}`);
+      }
+    } catch (error) {
+      Alert.alert("Error", error.message || "Terjadi kesalahan saat memperbarui materi.");
+    }
+  };
+
+  // Validasi tombol simpan
   const isSaveDisabled = !editedMateri || !editedInstruksi || !editedLampiran;
 
   return (
@@ -21,51 +100,63 @@ const ModalForm = ({
       style={[styles.modalContent, { transform: [{ translateY: modalY }] }]}
     >
       <TouchableOpacity onPress={onClose} style={styles.modalheader}>
-        <Image source={require('../../../assets/images/corner.png')} style={styles.modalheaderimg} />
-        <Text style={styles.modalTitle}>Tambah Materi Baru</Text>
+        <Image
+          source={require("../../../assets/images/corner.png")}
+          style={styles.modalheaderimg}
+        />
+        <Text style={styles.modalTitle}>
+          {isEditMode ? "Edit Materi" : "Tambah Materi Baru" }
+        </Text>
       </TouchableOpacity>
 
       <Text>Nama Materi</Text>
       <TextInput
         style={styles.input}
         value={editedMateri}
-        onChangeText={(text) => setEditedMateri(text)}
+        onChangeText={setEditedMateri}
         placeholder="Masukkan nama materi"
       />
+
       <Text>Instruksi</Text>
       <TextInput
         style={[styles.input, { height: 100 }]}
         value={editedInstruksi}
-        onChangeText={(text) => setEditedInstruksi(text)}
+        onChangeText={setEditedInstruksi}
         placeholder="Masukkan instruksi"
         multiline
       />
+
       <Text>Link Lampiran</Text>
       <TextInput
         style={styles.input}
         value={editedLampiran}
-        onChangeText={(text) => setEditedLampiran(text)}
+        onChangeText={setEditedLampiran}
         placeholder="Masukkan link lampiran"
       />
 
-        <TouchableOpacity
-          style={[styles.saveButtonCustom, isSaveDisabled && styles.disabledButton]}
-          onPress={onSave}
-          disabled={isSaveDisabled}
-        >
-          <Text style={styles.saveButtonText}>Simpan</Text>
-        </TouchableOpacity>
-
+      <TouchableOpacity
+        style={[
+          styles.saveButtonCustom,
+          isSaveDisabled && styles.disabledButton,
+        ]}
+        onPress={isEditMode ? editMateri : addMateri}
+        disabled={isSaveDisabled}
+      >
+        <Text style={styles.saveButtonText}>
+          {isEditMode ? "Simpan Perubahan" : "Simpan"}
+        </Text>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
 
+
 const styles = StyleSheet.create({
   modalContent: {
     position: "absolute",
-    bottom: '-5%',
-    left: '-5%',
-    right: '-5%',
+    bottom: "-5%",
+    left: "-5%",
+    right: "-5%",
     backgroundColor: "#fff",
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
@@ -76,12 +167,12 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  modalheader:{
-    flexDirection:'row'
+  modalheader: {
+    flexDirection: "row",
   },
-  modalheaderimg:{
-    marginRight:10,
-    marginTop:2
+  modalheaderimg: {
+    marginRight: 10,
+    marginTop: 2,
   },
   modalTitle: {
     fontSize: 18,

@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "app/auth/SignUpScreen3.tsx", "app/auth/SingUpGuru.js", "components/ui/Berlangsung.js", "components/ui/diagram.js", "app/murid/MuridScreen.tsx", "components/kelas/DetailKelasScreen.js", "app/murid/_layout.js", "app/_layout.ts", "app/NotifikasiSiswa.js", "app/_layout.tsx", "app/auth/LoginScreen.tsxx", "app/auth/LoginScreen.tsx", "app/auth/SelectRole.js", "app/guru/Kelas.tsxx"  ]
+, "app/auth/SignUpScreen3.tsx", "app/auth/SingUpGuru.js", "components/ui/Berlangsung.js", "components/ui/diagram.js", "app/murid/MuridScreen.tsx", "components/kelas/DetailKelasScreen.tsx", "app/murid/_layout.js", "app/_layout.ts", "app/NotifikasiSiswa.js", "app/_layout.tsx", "app/auth/LoginScreen.tsxx", "app/auth/LoginScreen.tsx", "app/auth/SelectRole.js", "app/guru/Kelas.tsxx"  ]
 }

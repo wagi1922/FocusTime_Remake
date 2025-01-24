@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import API_URL from "@/config/config";
+import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -8,19 +9,109 @@ import {
   TouchableOpacity,
   FlatList,
   Linking,
-  Alert
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const MateriCard = ({ title, description, fileName }) => {
-  const [isOpened, setIsOpened] = useState(false); // State untuk menentukan apakah tombol "Buka" telah diklik
+// Komponen MateriCard hanya menerima props
+const MateriCard = ({ title, description, fileName, isOpened, onOpenLink }) => {
+  return (
+    <View style={styles.card}>
+      {/* Bagian Atas */}
+      <View style={styles.header}>
+        <Image
+          source={require("../../assets/images/Buku1.png")}
+          style={styles.icon}
+        />
 
-  // Fungsi untuk membuka link
-  const handleOpenLink = async (url) => {
+        <View style={styles.textColumnLeft}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.description}>{description}</Text>
+        </View>
+
+        {/* Kata "sudah" atau "belum" */}
+        <View
+          style={[
+            styles.textColumnRight,
+            { backgroundColor: isOpened ? "#B4FF9D" : "#FF0000" },
+          ]}
+        >
+          <Text style={styles.sudaText}>{isOpened ? "sudah" : "Belum"}</Text>
+        </View>
+      </View>
+
+      {/* Bagian Bawah */}
+      <View style={styles.body}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => onOpenLink(fileName)}
+        >
+          <Text style={styles.buttonText}>Buka</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const App = () => {
+  const [cards, setCards] = useState([]);
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  // Fungsi untuk mengambil data kelas
+  const fetchClasses = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+      const classId = await AsyncStorage.getItem("classId");
+      if (!token) throw new Error("Token tidak ditemukan. Silakan login kembali.");
+      if (!classId)
+        throw new Error("ID kelas tidak ditemukan. Silakan login kembali.");
+
+      const response = await fetch(`${API_URL}/api/materials/${classId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const { data } = result;
+
+        if (Array.isArray(data)) {
+          setCards(
+            data.map((item) => ({
+              id: item._id,
+              title: item.title,
+              description: item.description,
+              fileName: item.documentLink,
+              isOpened: false, // Tambahkan status apakah sudah dibuka
+            }))
+          );
+        } else {
+          console.error("Data dari API tidak berbentuk array:", result);
+          setCards([]);
+        }
+      } else {
+        const errorText = await response.text();
+        console.error("Error dari API:", errorText);
+        Alert.alert("Error", "Gagal mengambil data kelas");
+      }
+    } catch (error) {
+      console.error("Kesalahan saat mengambil data kelas:", error);
+      Alert.alert("Error", error.message || "Terjadi kesalahan saat mengambil data kelas");
+    }
+  };
+
+  const handleOpenLink = async (url, id) => {
     try {
       const supported = await Linking.canOpenURL(url);
       if (supported) {
         await Linking.openURL(url);
-        setIsOpened(true); // Mengubah state menjadi "sudah" setelah link dibuka
+        setCards((prevCards) =>
+          prevCards.map((card) =>
+            card.id === id ? { ...card, isOpened: true } : card
+          )
+        );
       } else {
         Alert.alert("Link tidak valid", "Tidak dapat membuka link yang diberikan.");
       }
@@ -31,67 +122,22 @@ const MateriCard = ({ title, description, fileName }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.card}>
-        {/* Bagian Atas */}
-        <View style={styles.header}>
-          <Image
-            source={require("../../assets/images/Buku1.png")}
-            style={styles.icon}
+      <FlatList
+        data={cards}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <MateriCard
+            title={item.title}
+            description={item.description}
+            fileName={item.fileName}
+            isOpened={item.isOpened}
+            onOpenLink={(url) => handleOpenLink(url, item.id)}
           />
-
-          <View style={styles.textColumnLeft}>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.description}>{description}</Text>
-          </View>
-
-          {/* Kata "sudah" atau "belum" */}
-          <View style={[styles.textColumnRight, { backgroundColor: isOpened ? "#B4FF9D" : "#FF0000" }]}>
-            <Text style={styles.sudaText}>{isOpened ? "sudah" : "Belum"}</Text>
-          </View>
-        </View>
-
-        {/* Bagian Bawah */}
-        <View style={styles.body}>
-          <View style={styles.fileSection}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => handleOpenLink(fileName)}
-            >
-              <Text style={styles.buttonText}>Buka</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+        )}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+      />
     </SafeAreaView>
-  );
-};
-
-const App = () => {
-  const dummyData = [
-    {
-      id: "1",
-      matpel: "Matematika",
-      title: "Materi 1",
-      description: "Berikut materi Trigonometri",
-      fileName: "http://example.com/trigonometry",
-    },
-
-  ];
-
-  return (
-    <FlatList
-      data={dummyData}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <MateriCard
-          title={item.title}
-          description={item.description}
-          fileName={item.fileName}
-        />
-      )}
-      contentContainerStyle={styles.listContainer}
-      showsVerticalScrollIndicator={false}
-    />
   );
 };
 
